@@ -1,0 +1,197 @@
+---
+title: "Algoritma Naive Bayes dengan R"
+author: "Putri Lestariana-Institut Teknologi Statistika dan Bisnis Muhammadiyah"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: flatly
+    higlight: zenburn
+    toc: true
+    toc_float:
+      collapsed: true
+    df_print: paged
+bibliography: references.bib
+---
+
+```{=html}
+<style>
+body{
+text-align: justify}
+</style>
+```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Pengertian Algoritma
+
+  Algoritma Naïve Bayes merupakan metode yang ditemukan oleh ilmuwan inggris Thomas Bayes, sehingga dikenal dengan teorema naïve bayes.
+ Bayes merupakan teknik prediksi berbasis probalistik sederhana yang berdasar pada penerapan teorema bayes (atau aturan bayes) dengan asumsi independen (ketidaktergantungan) yang kuat (naif). Dengan kata lain, dalam Naïve Bayes, model yang digunakan adalah “model fitur independen”.
+  Jadi Naïve Bayes merupakan salah satu algoritma yang terdapat pada teknik klasifikasi yang menggunakan probabilitas statistic. Digunakan untuk menentukan peluang dimasa depan dari pengalaman pada masa sebelumnya.
+
+# Keunggulan Algoritma Naive Bayes
+Keunggulan Algoritma Naive Bayes Classifier:
+
+1. Sederhana dan mudah diterapkan
+
+2. Tidak membutuhkan banyak data pelatihan
+
+3. Menangani data kontinu dan diskrit
+
+4. Sangat skalabel dengan jumlah prediktor dan titik data
+
+5. Cepat dan dapat digunakan untuk membuat prediksi realtime
+
+6. Tidak sensitif terhadap fitur yang tidak relevan.
+
+# Tahapan Algoritma
+Tahapan algoritma Naive Bayes secara umum :
+
+1. Membaca data training
+
+
+2. Menghitung jumlah probabilitas
+
+
+
+3. Memastikan tipe data jika :
+
+    
+
+a. Jika tipe data numerik maka :
+
+
+1. Mencari mean tiap parameter
+
+
+2. Mencari standar devisiasi tiap parameter
+
+
+3. Membuat Tabel mean dan standar devisiasi
+ 
+  
+
+b. Jika tipe data tidak numeric maka :
+
+
+1. Mencari jumlah  probabilitas
+ 
+
+2. Membuat tabel probabilitas
+
+
+3. Mengalikan semua variabel kelas
+ 
+
+4. Keputusan	
+
+
+# Eksplorasi DataSet
+```{r}
+library(mlbench)
+library(e1071)
+library(caret)
+```
+
+```{r}
+library(ggplot2)
+library(gmodels)
+
+```
+Memuat data :
+```{r}
+data("BreastCancer")
+```
+```{r}
+str(BreastCancer)
+```
+Setelah itu kita akan melihat level dari variabel Class untuk mengetahui berapa jenis kangker yang ada di dataset :
+```{r}
+levels(BreastCancer$Class)
+```
+
+Memuat data dengan lebih jelas dan detail : 
+```{r}
+summary(BreastCancer)
+```
+ 
+  
+ Bar Diagram :
+```{r}
+CleanDataset <- na.omit(BreastCancer)
+qplot(Class, data=CleanDataset, geom = "bar") + theme(axis.text.x = element_text(angle = 0, hjust = 2))
+```
+# Data Cleaning 
+ Setelah kita lihat dataset secara menyeluruh ternyata terdapat NA atau nilai yang hilang (Missing Value) yakni sebanyak 16 NA.
+ 
+ Selanjutnya kita hapus atau menghilangkan baris yang terdapat nilai NA :
+```{r}
+head(is.na(BreastCancer))
+```
+ 
+# Split Data 
+ Membagi data menjadi data Training, data Testing,dan data Prediksi :
+```{r}
+library(caTools)
+set.seed(150)
+ 
+#Splitting data Training dan data Testing
+split=sample.split(BreastCancer, SplitRatio = 0.9) 
+
+#Dataset Training
+training_set=subset(BreastCancer,split==TRUE)       
+
+#Dataset Testing
+test_set=subset(BreastCancer,split==FALSE)
+```
+
+```{r}
+dim(training_set) 
+```
+
+```{r}
+dim(test_set) 
+```
+
+```{r}
+topredict_set<-test_set[2:10]                       # Menghapus Target Class
+dim(topredict_set)
+```
+
+# Pembuatan Model
+Langkah selanjutnya adalah merancang model klasifikasi menggunakan algoritma Naive Bayes :
+
+```{r}
+#Pembuatan Model NaiveBayes 
+model_naive <- naiveBayes(Class ~ ., data = training_set) 
+
+#Prediksi kelas target pada dataset validasi (topredict)
+preds_naive <- predict(model_naive, newdata = topredict_set)  
+
+(conf_matrix_naive <- table(preds_naive, test_set$Class))   
+
+```
+ 
+```{r}
+confusionMatrix(conf_matrix_naive)  
+```
+
+Penjelasan uji akurasi model di atas sebagai berikut:
+
+Sensitivity = dari semua data aktual yang positif, seberapa mampu proporsi model menebak dengan benar kelas positif.
+
+Specificity = dari semua data aktual yang negatif, seberapa mampu proporsi model menebak dengan benar kelas negatif.
+
+Accuracy = seberapa mampu model menebak dengan benar variabel target Y.
+
+Precision = dari semua hasil prediksi yang positif, seberapa mampu model menebak dengan benar kelas positif.
+
+Dari hasil yang diperoleh, dapat kita ambil informasi bahwa kemampuan model dalam menebak target Y sebesar 98,48% . Sedangkan dari keseluruhan data aktual pada pasien yang terkena kangker payudara (kelas benign(jinak)), model mampu menebak dengan benar sebesar 97.22%. Dari keseluruhan data aktual pasien yang terkena kangker payudara (kelas melignant(ganas)), model mampu menebak dengan benar sebesar 100%. Dari keseluruhan hasil prediksi yang mampu ditebak oleh model, dengan benar kelas belign sebesar 100%.
+
+# Referensi
+https://medium.com/@hasna.firda14/implementasi-algoritma-naive-bayes-classifier-with-r-984808f3d996
+
+https://rstudio-pubs-static.s3.amazonaws.com/717459_5136236cf5064b8d973e4d8c1b863943.html#61_Naive_Bayes
+
+https://rpubs.com/RoniSy/741702
+
+https://github.com/Lestariana19
